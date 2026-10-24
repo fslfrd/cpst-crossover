@@ -73,7 +73,8 @@ Highlighted series use the first three categorical slots of a palette validated 
 
 ## Related writing
 
-*Look Beyond Token Prices: What Does Successful AI Work Cost?* by Faisal Fareed. Link: `<article URL>`.
+- [*Look Beyond Token Prices: What Does Successful AI Work Cost?*](https://www.linkedin.com/pulse/look-beyond-token-prices-what-does-successful-ai-work-faisal-fareed-lvd9c/) by Faisal Fareed. The case for measuring cost per successful task.
+- *Cheap Models Stop Being Cheap at About a Minute* by Faisal Fareed. The results in this repository. Link: `<article URL>`.
 
 ## License
 
