@@ -71,6 +71,7 @@ Kept so the reasoning is auditable. Full notes in `data/sources.toml`.
 
 ## Limitations
 
+- **Comparability.** A CPST is only comparable with another computed on the same tasks and the same definition of success. Every figure here comes from one benchmark with one acceptance bar (all of a task's tests pass). Figures from other benchmarks, provider scorecards or your own workload define success differently and should not be mixed into the same dataset. This is also why the OpenAI DeepSWE figures are excluded: different tasks and unstated scoring, in addition to the mismatched cost baselines.
 - **Benchmark scope.** 40 selected Terminal-Bench command-line tasks. Not enterprise workflows. Failure rates on your workload can differ substantially.
 - **Vendor-run.** Fireworks hosts several of the open models evaluated.
 - **Repair cost is not measured.** It is swept. Real repair cost varies by failure type, and the model that fails may also influence how long a fix takes.

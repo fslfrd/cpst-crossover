@@ -49,6 +49,8 @@ Add a CSV to `data/` with these columns, and an entry in `data/sources.toml` poi
 | `cost_per_attempt_usd` | Mean cost per attempt, **including failed attempts** |
 | `cost_per_success_usd` | Optional, used only for cross-checks |
 
+Keep each dataset to one task set and one acceptance bar. The calculator compares models only within a dataset, because CPST from different task sets or success definitions isn't comparable.
+
 Then run `python -m cpst --dataset <your_key> report`.
 
 ## Layout
