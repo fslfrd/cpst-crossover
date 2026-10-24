@@ -27,6 +27,33 @@ caveats = [
   "Model versions and prices as of the experiment; both change.",
 ]
 
+# Per-run results for the same study, used for the bootstrap and for the policy
+# analysis. Not redistributed: no license file was found in the repository at this
+# commit. `python -m cpst fetch` downloads and checks them into data/external/.
+[datasets.arize_terminalbench_2026_07.runs]
+repo = "https://github.com/Arize-ai/fireworks-cost-benchmark"
+commit = "1b073a1b8c1101edafdee8ced3326b0d40401b0f"
+retrieved = 2026-10-24
+license_note = "No license file found in the repository at this commit. Downloaded for local analysis only."
+accounting = "Every row is an attempt. A row passes only if passed is true. Missing cost_usd (23 harness or provider errors) counts as 0. This reproduces the published table."
+
+[datasets.arize_terminalbench_2026_07.runs.files]
+"results/benchmark_40x6.jsonl" = "e0f7b9be45fe3934f74b3548893dbd44edf10a1b1903acdc6b0ab205fb867fd2"
+"tasks/subset40.txt" = "db23aa64c1117330ee2a6a4edfad3ad724f20614f3cd7af31f28eddce9944c44"
+
+# Published table name -> model_key in the per-run file
+[datasets.arize_terminalbench_2026_07.runs.model_keys]
+"gpt-oss-120b" = "fw-gpt-oss-120b"
+"gemini-3.1-flash-lite" = "goog-gemini-3.1-flash-lite"
+"Kimi K2.6" = "fw-kimi-k2p6"
+"GLM-5.2" = "fw-glm-5p2"
+"DeepSeek V4 Pro" = "fw-deepseek-v4-pro"
+"GPT-5.5" = "oai-gpt-5.5"
+"Kimi K3" = "fw-kimi-k3"
+"GPT-5" = "oai-gpt-5"
+"Claude Sonnet 5" = "ant-claude-sonnet-5"
+"gemini-3.5-flash" = "goog-gemini-3.5-flash"
+
 # Sources reviewed and deliberately NOT used. Kept so the reasoning is auditable.
 
 [excluded.openai_gpt6_launch_deepswe]

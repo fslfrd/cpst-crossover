@@ -35,17 +35,21 @@ Loaded CPST = cost per attempt + failure rate x repair cost, under the repair mo
 
 ## 3. Crossovers, with uncertainty
 
-Ranges propagate the publisher's approximate ±6 point 95% interval on each pass rate, combined as ±8.5 points on the gap (conservative; see METHODOLOGY.md). A crossover is **resolved** only if the gap's range excludes zero. An unresolved crossover means the data cannot tell the two models' reliability apart.
+**Approximate range** uses only the published table: the publisher's ±6 point 95% interval on each pass rate, combined as ±8.5 points on the gap. It treats every attempt as independent and cost per attempt as exact, so it understates the uncertainty.
 
-| Cheaper model | More reliable model | Reliability gap | Crossover | Range | Human time (point) | Resolved |
-|---|---|---:|---:|---|---|---|
-| gpt-oss-120b | gemini-3.1-flash-lite | 7 ± 8.5 pts | $0.11 | $0.05 to unbounded | 5 sec | no |
-| gemini-3.1-flash-lite | GPT-5.5 | 27 ± 8.5 pts | $1.47 | $1.12 to $2.15 | 1.1 min | yes |
-| gpt-oss-120b | GPT-5.5 | 34 ± 8.5 pts | $1.19 | $0.96 to $1.59 | 54 sec | yes |
+**Bootstrap range** uses Arize's per-run results: a paired two-stage bootstrap (tasks, then trials within each task, 2,000 replicates). It accounts for attempts on the same task being related and for variation in cost per attempt. **Use this range.** Its point estimate differs slightly from the table's because published pass rates are rounded.
+
+A crossover is **resolved** if its range is bounded: the data can tell the two models' reliability apart.
+
+| Cheaper model | More reliable model | Crossover (table) | Approximate range | Bootstrap point | Bootstrap range | Human time (bootstrap point) | Resolved |
+|---|---|---:|---|---:|---|---|---|
+| gpt-oss-120b | gemini-3.1-flash-lite | $0.11 | $0.05 to unbounded | $0.10 | $0.02 to unbounded | 5 sec | no |
+| gemini-3.1-flash-lite | GPT-5.5 | $1.47 | $1.12 to $2.15 | $1.52 | $0.86 to $3.18 | 1.1 min | yes |
+| gpt-oss-120b | GPT-5.5 | $1.19 | $0.96 to $1.59 | $1.20 | $0.78 to $2.01 | 54 sec | yes |
 
 ## 4. Every pair with a cost-reliability tradeoff
 
-Pairs where one model is both cheaper and more reliable are omitted: there is no crossover, the dominant model is always cheaper.
+Pairs where one model is both cheaper and more reliable are omitted: there is no crossover, the dominant model is always cheaper. Resolved here uses the approximate method.
 
 | Cheaper model | More reliable model | Gap | Crossover | Resolved |
 |---|---|---:|---:|---|

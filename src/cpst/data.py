@@ -49,3 +49,25 @@ def load_dataset(key: str, data_dir: Path = DATA_DIR) -> Dataset:
                 )
             )
     return Dataset(key=key, meta=meta, models=models)
+
+
+# ------------------------------------------------------------ per-run results
+
+EXTERNAL_DIR = DATA_DIR / "external"
+
+
+def runs_dir(ds: Dataset, data_dir: Path = DATA_DIR) -> Path:
+    return data_dir / "external" / f"arize-{ds.meta['runs']['commit']}"
+
+
+def runs_file(ds: Dataset, data_dir: Path = DATA_DIR) -> Path | None:
+    """Path to the per-run JSONL if it has been fetched, else None."""
+    if "runs" not in ds.meta:
+        return None
+    p = runs_dir(ds, data_dir) / "benchmark_40x6.jsonl"
+    return p if p.exists() else None
+
+
+def model_keys(ds: Dataset) -> dict[str, str]:
+    """Published model name -> per-run model_key."""
+    return dict(ds.meta["runs"]["model_keys"])

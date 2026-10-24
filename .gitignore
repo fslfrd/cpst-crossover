@@ -10,3 +10,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Third-party data downloaded by scripts/fetch_arize.py (no license to redistribute)
+data/external/

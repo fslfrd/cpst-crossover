@@ -2,7 +2,7 @@
 
 **At what human repair cost does a cheaper, less reliable AI model stop being the cheaper way to get work done?**
 
-This repository computes cost per successful task (CPST) and the repair-cost crossover between models, from published benchmark results. It is a calculator over a cited dataset. It runs no models and makes no new measurements.
+This repository computes cost per successful task (CPST), the repair-cost crossover between models, and the cost of retry and escalation policies, from published benchmark results. It is a calculator over cited data. It runs no models and makes no new measurements.
 
 ![Loaded cost per accepted task against human repair cost](figures/crossover.png)
 
@@ -12,10 +12,23 @@ Using the [Arize and Fireworks benchmark](https://arize.com/blog/cost-per-succes
 
 - With **no human repair cost**, the cheapest model per attempt is cheapest per accepted task. This is the token-price view.
 - The two cheapest models, gpt-oss-120b and gemini-3.1-flash-lite, trade places at about $0.11 per failure, but their reliability gap is **not resolved** by the data. Treat them as tied.
-- At about **$1.47 per failure**, roughly **a minute of human time** at $80 an hour, GPT-5.5 becomes the cheapest per accepted task. The approximate 95% range for that crossover is **$1.12 to $2.15**. Against gpt-oss-120b instead, the crossover is $1.19 (range $0.96 to $1.59). Kimi K3 is statistically indistinguishable from GPT-5.5 here.
+- At about **$1.47 per failure**, roughly **a minute of human time** at $80 an hour, GPT-5.5 becomes the cheapest per accepted task. From Arize's per-run results, the 95% bootstrap range for that crossover is **$0.86 to $3.18**, roughly 40 seconds to two and a half minutes. Against gpt-oss-120b instead, the crossover is $1.20 (range $0.78 to $2.01). Kimi K3 is statistically indistinguishable from GPT-5.5 here.
 - Above that, the gap widens. At $4 per failure, GPT-5.5's loaded cost is about 28% below gemini-3.1-flash-lite's.
 
-Full tables, including every pairwise crossover: [RESULTS.md](RESULTS.md). Assumptions, uncertainty and what is published versus derived: [METHODOLOGY.md](METHODOLOGY.md).
+## Retries and escalation change the answer
+
+![Cost per accepted task for retry and escalation policies](figures/policies.png)
+
+Comparing single models assumes one attempt, then a person. Arize also published every individual run, so a policy can be priced: retry a model, hand off to a stronger one, and only then to a person. With the same repair assumption, and assuming every failure is caught:
+
+- **Up to about $1.33 per failure** (a minute at $80 an hour), the cheapest policy is retrying gemini-3.1-flash-lite up to three times.
+- **Above that**, Arize's own escalation ladder is cheapest: gpt-oss-120b, then flash-lite, then Kimi K2.6, then GPT-5.5, one try each, then a person. It costs about the same in API spend as GPT-5.5 alone ($0.421 against $0.424 per task) and leaves **19% of tasks for a person instead of 33%**.
+- **GPT-5.5 alone is never the cheapest policy** in the set tested. Above $0.82 per failure the ladder beats it in at least 97.5% of bootstrap replicates.
+- 3 of the 40 tasks were never solved by any model in 60 attempts each. They reach a person under every policy, so 7.5% is the floor.
+
+The retry results depend on catching failures reliably. The benchmark's tests do that; a production workflow needs its own check. Full tables and sensitivity: [POLICIES.md](POLICIES.md).
+
+Full single-model tables, including every pairwise crossover: [RESULTS.md](RESULTS.md). Assumptions, uncertainty and what is published versus derived: [METHODOLOGY.md](METHODOLOGY.md).
 
 ## What this is not
 
@@ -30,12 +43,20 @@ Python 3.9 or later. The core needs nothing beyond the standard library on 3.11+
 ```bash
 pip install -e '.[figures]'
 
-python -m cpst report                       # Markdown tables to stdout
-python -m cpst report > RESULTS.md          # regenerate RESULTS.md
+python -m cpst fetch                        # download Arize's per-run results (pinned, checksummed)
+
+python -m cpst report > RESULTS.md          # single-model tables
+python -m cpst policies > POLICIES.md       # retry and escalation policies
 python -m cpst report --hourly 120          # different loaded labor rate
-python -m cpst figure --out figures/crossover.png --lmax 4
+python -m cpst figure                       # figures/crossover.png
+python -m cpst policy-figure                # figures/policies.png
 
 python -m unittest discover -s tests        # arithmetic and data checks
+```
+
+`fetch` saves the per-run results to `data/external/`, which is gitignored: Arize's repository has no license file, so this project links to the data instead of copying it. Without it, `report` and `figure` fall back to the approximate uncertainty range and `policies` is unavailable.
+
+```
 ```
 
 ## Use your own numbers
@@ -58,20 +79,22 @@ Then run `python -m cpst --dataset <your_key> report`.
 ```
 data/
   arize_terminalbench_2026-07.csv   published figures, one row per model
-  sources.toml                      citations, dates, caveats, excluded sources
+  sources.toml                      citations, dates, checksums, caveats, excluded sources
+  external/                         per-run results from `fetch` (gitignored)
 src/cpst/
   model.py                          CPST, loaded CPST, crossover, envelope
-  data.py                           loaders
-  report.py                         generates RESULTS.md
-  figures.py                        the crossover chart
-tests/test_model.py                 arithmetic, and reproduces the published CPST column
+  policies.py                       retry and escalation policies, bootstrap
+  data.py, fetch.py                 loaders, pinned download
+  report.py, policy_report.py       generate RESULTS.md and POLICIES.md
+  figures.py                        both charts
+tests/                              arithmetic, simulation check, reproduction of Arize's figures
 METHODOLOGY.md
-RESULTS.md                          generated
+RESULTS.md, POLICIES.md             generated
 ```
 
 ## Chart palette
 
-Highlighted series use the first three categorical slots of a palette validated for color-vision deficiency and normal-vision separation on a light surface (blue `#2a78d6`, orange `#eb6834`, aqua `#1baf7a`). Every highlighted line is also directly labeled, so identity never depends on color alone.
+Highlighted series use the first four categorical slots of a palette validated for color-vision deficiency and normal-vision separation on a light surface (blue `#2a78d6`, orange `#eb6834`, aqua `#1baf7a`, yellow `#eda100`). Aqua and yellow sit below 3:1 contrast on the surface, so every highlighted line is directly labeled and the generated tables carry the same numbers.
 
 ## Related writing
 

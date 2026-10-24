@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from math import inf, isinf
 
-from .data import Dataset
+from .data import Dataset, model_keys
 from .model import crossover_estimate, inference_cpst, lower_envelope
 
 
@@ -19,7 +19,7 @@ def _minutes(L: float, hourly: float) -> str:
     return f"{m * 60:.0f} sec" if m < 1 else f"{m:.1f} min"
 
 
-def build_report(ds: Dataset, l_max: float = 20.0, hourly: float = 80.0) -> str:
+def build_report(ds: Dataset, l_max: float = 20.0, hourly: float = 80.0, runs=None) -> str:
     meta = ds.meta
     hw = ds.pass_rate_halfwidth
     out: list[str] = []
@@ -70,11 +70,21 @@ def build_report(ds: Dataset, l_max: float = 20.0, hourly: float = 80.0) -> str:
     # 3. Crossovers between successive envelope models, plus the headline pair
     w("## 3. Crossovers, with uncertainty")
     w("")
-    w(f"Ranges propagate the publisher's approximate ±{hw * 100:.0f} point 95% interval on "
-      f"each pass rate, combined as ±{hw * 100 * 2 ** 0.5:.1f} points on the gap "
-      "(conservative; see METHODOLOGY.md). A crossover is **resolved** only if the gap's "
-      "range excludes zero. An unresolved crossover means the data cannot tell the two "
-      "models' reliability apart.")
+    w(f"**Approximate range** uses only the published table: the publisher's ±{hw * 100:.0f} point "
+      f"95% interval on each pass rate, combined as ±{hw * 100 * 2 ** 0.5:.1f} points on the gap. It "
+      "treats every attempt as independent and cost per attempt as exact, so it understates the "
+      "uncertainty.")
+    w("")
+    if runs is not None:
+        w("**Bootstrap range** uses Arize's per-run results: a paired two-stage bootstrap (tasks, then "
+          "trials within each task, 2,000 replicates). It accounts for attempts on the same task being "
+          "related and for variation in cost per attempt. **Use this range.** Its point estimate differs "
+          "slightly from the table's because published pass rates are rounded.")
+    else:
+        w("Run `python -m cpst fetch` to add the bootstrap range from Arize's per-run results.")
+    w("")
+    w("A crossover is **resolved** if its range is bounded: the data can tell the two models' "
+      "reliability apart.")
     w("")
     pairs = []
     for a, b in zip(env, env[1:]):
@@ -83,23 +93,45 @@ def build_report(ds: Dataset, l_max: float = 20.0, hourly: float = 80.0) -> str:
     if (first, last) not in pairs and first is not last:
         pairs.append((first, last))
 
-    w("| Cheaper model | More reliable model | Reliability gap | Crossover | Range | Human time (point) | Resolved |")
-    w("|---|---|---:|---:|---|---|---|")
+    boot = {}
+    if runs is not None:
+        from .policies import bootstrap_threshold, single
+        keys = model_keys(ds)
+        for a, b in pairs:
+            e = crossover_estimate(a, b, hw)
+            if e is not None:
+                boot[(a.name, b.name)] = bootstrap_threshold(
+                    single(keys[e.cheaper.name]), single(keys[e.more_reliable.name]), runs)
+
+    if boot:
+        w("| Cheaper model | More reliable model | Crossover (table) | Approximate range | "
+          "Bootstrap point | Bootstrap range | Human time (bootstrap point) | Resolved |")
+        w("|---|---|---:|---|---:|---|---|---|")
+    else:
+        w("| Cheaper model | More reliable model | Reliability gap | Crossover | Approximate range | "
+          "Human time | Resolved |")
+        w("|---|---|---:|---:|---|---|---|")
     for a, b in pairs:
         e = crossover_estimate(a, b, hw)
         if e is None:
             continue
-        w(f"| {e.cheaper.name} | {e.more_reliable.name} | "
-          f"{e.gap * 100:.0f} ± {e.gap_halfwidth * 100:.1f} pts | {_usd(e.point)} | "
-          f"{_usd(e.low)} to {_usd(e.high)} | {_minutes(e.point, hourly)} | "
-          f"{'yes' if e.resolved else 'no'} |")
+        bt = boot.get((a.name, b.name))
+        if bt is not None:
+            w(f"| {e.cheaper.name} | {e.more_reliable.name} | {_usd(e.point)} | "
+              f"{_usd(e.low)} to {_usd(e.high)} | {_usd(bt.point)} | {_usd(bt.low)} to {_usd(bt.high)} | "
+              f"{_minutes(bt.point, hourly)} | {'yes' if bt.resolved else 'no'} |")
+        else:
+            w(f"| {e.cheaper.name} | {e.more_reliable.name} | "
+              f"{e.gap * 100:.0f} ± {e.gap_halfwidth * 100:.1f} pts | {_usd(e.point)} | "
+              f"{_usd(e.low)} to {_usd(e.high)} | {_minutes(e.point, hourly)} | "
+              f"{'yes' if e.resolved else 'no'} |")
     w("")
 
     # 4. All tradeoff pairs, for completeness
     w("## 4. Every pair with a cost-reliability tradeoff")
     w("")
     w("Pairs where one model is both cheaper and more reliable are omitted: there is no "
-      "crossover, the dominant model is always cheaper.")
+      "crossover, the dominant model is always cheaper. Resolved here uses the approximate method.")
     w("")
     w("| Cheaper model | More reliable model | Gap | Crossover | Resolved |")
     w("|---|---|---:|---:|---|")
