@@ -105,7 +105,7 @@ def crossover_chart(ds: Dataset, out: Path, l_max: float = 4.0, hourly: float = 
         f"Source: {ds.meta['publisher']}, “{ds.meta['title']},” {ds.meta['published']}.",
         f"{ds.meta['benchmark']}, {ds.meta['total_runs']:,} runs. "
         "Benchmark API cost only; excludes infrastructure and evaluation.",
-        "Derived analysis, not a new measurement: github.com/<owner>/cpst-crossover",
+        "Derived analysis, not a new measurement: github.com/fslfrd/cpst-crossover",
     ]
     for i, line in enumerate(footer):
         fig.text(0.065, 0.068 - i * 0.025, line, fontsize=9, color=MUTED, ha="left")
