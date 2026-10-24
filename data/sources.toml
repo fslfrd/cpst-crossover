@@ -1,0 +1,54 @@
+# Every number in data/ traces to an entry here.
+# "retrieved" is the date the figures were checked against the live page.
+
+[datasets.arize_terminalbench_2026_07]
+file = "arize_terminalbench_2026-07.csv"
+title = "Cost per successful task: benchmarking ten AI models"
+publisher = "Arize AI and Fireworks AI (joint experiment)"
+url = "https://arize.com/blog/cost-per-successful-task-ai-model-benchmark/"
+published = 2026-07-23
+retrieved = 2026-10-24
+benchmark = "Terminal-Bench, 40 selected tasks"
+trials_per_task = 6
+total_runs = 2400
+grading = "Binary. All of the task's own tests pass inside its container, or the attempt failed."
+cost_includes_failed_attempts = true
+cost_basis = "Benchmark API spend only. Excludes infrastructure, evaluation and human effort."
+pass_rate_ci95_halfwidth = 0.06
+pass_rate_ci95_note = "Publisher: pass rates 'carry roughly a ±6 point 95% confidence interval'."
+columns.pass_rate = "Published pass rate across all attempts, as a fraction. Published rounded to whole percentage points."
+columns.cost_per_attempt_usd = "Published mean API cost per attempt, including failed, retried and timed-out runs."
+columns.cost_per_success_usd = "Published cost per successful task. Used only to cross-check derived values."
+columns.reliably_solved_of_40 = "Tasks passed in at least 4 of 6 trials. Blank where not published."
+columns.retry_tax = "Published retry tax. Not used in calculations."
+caveats = [
+  "Vendor-run experiment; Fireworks hosts several of the open models evaluated.",
+  "Command-line benchmark tasks, not enterprise workflows.",
+  "Model versions and prices as of the experiment; both change.",
+]
+
+# Sources reviewed and deliberately NOT used. Kept so the reasoning is auditable.
+
+[excluded.openai_gpt6_launch_deepswe]
+title = "Introducing GPT-6 Sol and Luna"
+url = "https://openai.com/index/introducing-gpt-6-sol-and-luna/"
+retrieved = 2026-10-24
+what_is_published = "DeepSWE 1.1 scores at max effort: Sol 68.8%, Luna 66.6%. Per-token prices: Sol $2/$10, Luna $0.10/$0.50 per 1M input/output tokens."
+reason = """
+Cost per task is published only as percentages relative to other models, and the two
+comparisons use different baselines: Sol is 'approximately 80% lower' than Claude Fable 5
+(effort level for the cost comparison not stated), while Luna is '96% less than Fable 5'
+with Fable 5 at medium effort. Without a common baseline, no Sol:Luna cost ratio can be
+derived. The page also does not state whether the DeepSWE score is a binary pass rate or
+partial credit, so 1 - score cannot be treated as a failure rate. No sample sizes are given.
+"""
+
+[excluded.openai_gpt6_deployment_safety]
+title = "GPT-6 Sol and GPT-6 Luna: October 2026 update"
+url = "https://deploymentsafety.openai.com/gpt-6-october"
+retrieved = 2026-10-24
+reason = """
+Safety and domain evaluations scored as length-adjusted or task-clipped scores, not task
+completion rates. The ordering between Sol and Luna also varies by evaluation, so it does
+not support a general 'larger model, fewer errors' assumption.
+"""

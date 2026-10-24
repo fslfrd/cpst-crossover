@@ -1,0 +1,11 @@
+model,provider,pass_rate,cost_per_attempt_usd,cost_per_success_usd,reliably_solved_of_40,retry_tax
+gpt-oss-120b,Fireworks (open),0.33,0.018,0.054,8,3.0
+gemini-3.1-flash-lite,Google,0.40,0.026,0.063,,2.5
+Kimi K2.6,Fireworks (open),0.42,0.163,0.384,,2.4
+GLM-5.2,Fireworks (open),0.42,0.208,0.500,,2.4
+DeepSeek V4 Pro,Fireworks (open),0.39,0.230,0.588,,2.6
+GPT-5.5,OpenAI (frontier),0.67,0.424,0.636,25,1.5
+Kimi K3,Fireworks (open),0.66,0.441,0.670,26,1.5
+GPT-5,OpenAI,0.41,0.317,0.769,,2.4
+Claude Sonnet 5,Anthropic,0.49,0.494,1.014,,2.1
+gemini-3.5-flash,Google,0.23,0.288,1.233,,4.3
