@@ -11,5 +11,5 @@ dist/
 .env.*
 !.env.example
 
-# Third-party data downloaded by scripts/fetch_arize.py (no license to redistribute)
+# Third-party data downloaded by `python -m cpst fetch` (no license to redistribute)
 data/external/
